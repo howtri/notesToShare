@@ -1,0 +1,9 @@
+A note taking app with any number of levels underneath a note
+All can contain information plus references and associated tasks
+tasks can be created and associated with any notes
+notes can be exported and read in to program
+emails can be sent containing notes
+
+-------
+
+future: gui/web app
