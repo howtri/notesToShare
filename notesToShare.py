@@ -1,20 +1,25 @@
 # Tristan Howell
-# Note taking app basics
+# Note taking app basics where the depth of notes can continue forever
+
+# To do
 # name will need to be unique
+# import/export as JSON
 
 from datetime import date
-from itertools import product
 import json
 
 
 class Interact:
+    """Used to manage and create Notes"""
 
     def __init__(self):
+        """Initializes Interact object"""
         self._notes = {}
         self._current = None
         self._pages = []
 
     def menu(self):
+        """Displays interaction menu and calls functions to interact with and create/delete Notes"""
         selection = ''
         while selection.lower() != 'q':
 
@@ -31,6 +36,7 @@ class Interact:
                   "r: to return higher | "
                   "q: to exit")
 
+            # basic interaction function mappings
             key_bindings = {'1': self.select, '2': self.delete, '3': self.new_note,
                             '4': self.search, '5': self.show_all, 'r': self.move_up}
 
@@ -45,6 +51,7 @@ class Interact:
                       "c: add references | "
                       "d: print note")
 
+                # additional interaction when inside of a Note
                 key_bindings.update({'a': self._current.add_to_notes, 'b': self._current.overwrite_notes,
                 'c': self._current.add_references, 'd': self._current.display})
 
@@ -54,23 +61,28 @@ class Interact:
             key_bindings[selection]()
 
     def show_all(self):
+        """Recursively displays all Notes and their children"""
+        delimeter = '----------------------------'
 
         def dive(note):
+            """Recursive call to display all of a Notes Children until the note has no child"""
             if note._children:
                 for child in note._children.values():
                     print(child._name)
                     dive(child)
 
         for note in self._notes.values():
-            print('----------------------------')
+            print(delimeter)
             print(note._name)
             dive(note)
-        print('----------------------------')
+        print(delimeter)
 
     def move_up(self):
+        """Moves one level up, highest level is where self._current = None"""
         self._current = self._current.get_parent()
 
     def select(self):
+        """Currently changes the self._current to another note object by name, will change to uniq id"""
         name = input('Select a note by name: ')
         if self._current:
             self._current = self._current.get_child(name)
@@ -78,6 +90,7 @@ class Interact:
             self._current = self._notes[name]
 
     def new_note(self):
+        """Create a new Note object"""
         name = input('Enter a name: ')
         # self._current will always be the parent, the top level parent will be None
         note = Note(name, self._current)
@@ -89,10 +102,12 @@ class Interact:
             self._current = note
 
     def delete(self):
+        """In progress function to delete a note, considerations: delete children recursively?"""
         name = input('Enter a name: ')
         pass
 
     def search(self):
+        """Recursively searches for a term and displays where it was found and the contents of the note"""
         search = input('Enter search term: ')
 
         def dive(note):
@@ -124,8 +139,10 @@ class Interact:
 
 
 class Note:
+    """Object that contains information and can contain additional Notes"""
 
     def __init__(self, name, parent):
+        """Init Note"""
         self._name = name
         self._date = date.today()
         self._contents = ''
@@ -134,17 +151,21 @@ class Note:
         self._children = {}
 
     def add_to_notes(self):
+        """Appends to a notes contents line by line"""
         self._date = date.today()
         self._contents += input('Enter Notes: ') + '\n'
 
     def overwrite_notes(self):
+        """Overwrites current contents"""
         self._date = date.today()
         self._contents = input('Enter Notes: ') + '\n'
 
     def add_references(self):
+        """Updates reference contents, always appends"""
         self._references += input('Enter references: ') + '\n'
 
     def display(self):
+        """Prints all notes and references if applicable"""
         if self._contents:
             print(f'Last Modified on {self._date}')
             print(self._contents)
@@ -156,12 +177,15 @@ class Note:
             print(self._references)
 
     def add_child(self, name, obj):
+        """Adds child Note to children dict"""
         self._children[name] = obj
 
     def get_child(self, name):
+        """returns the child Note object"""
         return self._children[name]
 
     def get_parent(self):
+        """Returns parent object"""
         return self._parent
 
     def prep_export(self):
@@ -173,6 +197,7 @@ class Note:
 
 
 class Task:
+    """Tasks will eventually be a feature and can be attached to one or many notes"""
 
     def __init__(self):
         self._user = None
