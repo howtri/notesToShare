@@ -6,7 +6,9 @@
 # import/export as JSON
 
 from datetime import date
-import json
+
+
+# import json
 
 
 class Interact:
@@ -42,10 +44,10 @@ class Interact:
 
             if self._current:
 
-                if self._current._children:
-                    print(*[child for child in self._current._children])
+                if self._current.get_children():
+                    print(*[child for child in self._current.get_children()])
 
-                print(f"Options for {self._current._name}\n"
+                print(f"Options for {self._current.get_name()}\n"
                       "a: add to notes | "
                       "b: overwrite notes | "
                       "c: add references | "
@@ -53,7 +55,7 @@ class Interact:
 
                 # additional interaction when inside of a Note
                 key_bindings.update({'a': self._current.add_to_notes, 'b': self._current.overwrite_notes,
-                'c': self._current.add_references, 'd': self._current.display})
+                                     'c': self._current.add_references, 'd': self._current.display})
 
             selection = input('Selection: ')
 
@@ -66,14 +68,14 @@ class Interact:
 
         def dive(note):
             """Recursive call to display all of a Notes Children until the note has no child"""
-            if note._children:
-                for child in note._children.values():
-                    print(child._name)
+            if note.get_children():
+                for child in note.get_children().values():
+                    print(child.get_name())
                     dive(child)
 
         for note in self._notes.values():
             print(delimeter)
-            print(note._name)
+            print(note.get_name())
             dive(note)
         print(delimeter)
 
@@ -111,17 +113,17 @@ class Interact:
         search = input('Enter search term: ')
 
         def dive(note):
-            if note._children:
-                for child in note._children.values():
-                    if search in child._contents:
-                        print(f'------ FOUND: {search} IN NOTE {child._name} --------')
-                        print(child._contents)
+            if note.get_children():
+                for child in note.get_children().values():
+                    if search in child.get_contents():
+                        print(f'------ FOUND: {search} IN NOTE {child.get_name()} --------')
+                        print(child.get_contents())
                     dive(child)
 
         for note in self._notes.values():
-            if search in note._contents:
-                print(f'------ FOUND: {search} IN NOTE {note._name} --------')
-                print(note._contents)
+            if search in note.get_contents():
+                print(f'------ FOUND: {search} IN NOTE {note.get_name()} --------')
+                print(note.get_contents())
             dive(note)
 
     # def export(self):
@@ -150,6 +152,27 @@ class Note:
         self._parent = parent
         self._children = {}
 
+    def add_child(self, name, obj):
+        """Adds child Note to children dict"""
+        self._children[name] = obj
+
+    def get_name(self):
+        return self._name
+
+    def get_child(self, name):
+        """returns the child Note object"""
+        return self._children[name]
+
+    def get_parent(self):
+        """Returns parent object"""
+        return self._parent
+
+    def get_children(self):
+        return self._children
+
+    def get_contents(self):
+        return self._contents
+
     def add_to_notes(self):
         """Appends to a notes contents line by line"""
         self._date = date.today()
@@ -176,18 +199,6 @@ class Note:
             print('---------------------References-----------------------')
             print(self._references)
 
-    def add_child(self, name, obj):
-        """Adds child Note to children dict"""
-        self._children[name] = obj
-
-    def get_child(self, name):
-        """returns the child Note object"""
-        return self._children[name]
-
-    def get_parent(self):
-        """Returns parent object"""
-        return self._parent
-
     def prep_export(self):
         """ exports this current note to a dictionary to be nested in more notes
             Thinking about it you'll need to create all these objects from scratch each time
@@ -209,6 +220,7 @@ class Task:
 def main():
     t1 = Interact()
     t1.menu()
+
 
 if __name__ == '__main__':
     main()
