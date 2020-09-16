@@ -6,8 +6,6 @@
 # import/export as JSON
 
 from datetime import date
-
-
 # import json
 
 
@@ -87,7 +85,7 @@ class Interact:
         """Currently changes the self._current to another note object by name, will change to uniq id"""
         name = input('Select a note by name: ')
         if self._current:
-            self._current = self._current.get_child(name)
+            self._current = self._current.get_children(name)
         else:
             self._current = self._notes[name]
 
@@ -126,18 +124,19 @@ class Interact:
                 print(note.get_contents())
             dive(note)
 
-    # def export(self):
-    #     def dive(note, dict):
-    #         if note._children:
-    #             for child in note._children.values():
-    #                 data = {{name: (date, contents, references, parent, {children: None})}}
-    #                 data[name][children] = dive(child)
-    #                 return data
-    #
-    #     for note in self._notes.values():
-    #         if search in note._contents:
-    #         data = {{name: (date, contents, references, parent, {children : None})}}
-    #         data[name][children] = dive(note)
+    def merge_notes(self, note1, note2):
+        """
+        Initially this will only work from the same level, you'll need to be able to sort through lower level
+        notes and index eventually
+
+        note1 and note2 are accepted as the names of notes NOT the object
+        """
+        if self._notes and not self._current:
+            print(self._notes[note1] + self._notes[note2])
+            self._notes.pop(note2)
+        else:
+            print(self._current.get_children[note1] + self._current.get_children[note2])
+            self._current.remove_child(note2)
 
 
 class Note:
@@ -146,32 +145,51 @@ class Note:
     def __init__(self, name, parent):
         """Init Note"""
         self._name = name
-        self._date = date.today()
         self._contents = ''
         self._references = ''
         self._parent = parent
         self._children = {}
 
+    def __str__(self):
+        """return contents + ref"""
+        if self._contents:
+            return self._contents + self._references
+        else:
+            return 'No notes yet!'
+
+    def __add__(self, other):
+        """Adds the other notes contents, references, and children to the original note"""
+        self._contents += other.get_contents()
+        self._references += other.get_references()
+        self._children.update(other.get_children())
+        del other
+        return self._contents
+
     def add_child(self, name, obj):
         """Adds child Note to children dict"""
         self._children[name] = obj
 
+    def remove_child(self, name):
+        self._children.pop(name)
+
     def get_name(self):
         return self._name
 
-    def get_child(self, name):
+    def get_children(self, name=0):
         """returns the child Note object"""
-        return self._children[name]
+        if name:
+            return self._children[name]
+        return self._children
 
     def get_parent(self):
         """Returns parent object"""
         return self._parent
 
-    def get_children(self):
-        return self._children
-
     def get_contents(self):
         return self._contents
+
+    def get_references(self):
+        return self._references
 
     def add_to_notes(self):
         """Appends to a notes contents line by line"""
@@ -185,19 +203,13 @@ class Note:
 
     def add_references(self):
         """Updates reference contents, always appends"""
+        if self._references == '':
+            self._references += '-----References-----\n'
         self._references += input('Enter references: ') + '\n'
 
     def display(self):
         """Prints all notes and references if applicable"""
-        if self._contents:
-            print(f'Last Modified on {self._date}')
-            print(self._contents)
-        else:
-            print('No notes yet!')
-
-        if self._references:
-            print('---------------------References-----------------------')
-            print(self._references)
+        print(self)
 
     def prep_export(self):
         """ exports this current note to a dictionary to be nested in more notes
