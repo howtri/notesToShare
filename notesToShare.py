@@ -4,6 +4,8 @@
 # To do
 # name will need to be unique
 # import/export as JSON
+# maybe making the top level stack is user and
+# uniq id needs to be random num/char not note_name
 
 from datetime import date
 # import json
@@ -33,12 +35,13 @@ class Interact:
                   "3: Create New Note | "
                   "4: Search Notes | "
                   "5: list all | "
+                  "6: Create New Task | "
                   "r: to return higher | "
                   "q: to exit")
 
             # basic interaction function mappings
             key_bindings = {'1': self.select, '2': self.delete, '3': self.new_note,
-                            '4': self.search, '5': self.show_all, 'r': self.move_up}
+                            '4': self.search, '5': self.show_all, '6': self.new_task, 'r': self.move_up}
 
             if self._current:
 
@@ -89,17 +92,25 @@ class Interact:
         else:
             self._current = self._notes[name]
 
-    def new_note(self):
-        """Create a new Note object"""
+    def new_note(self, subtype='Note'):
+        """Create a new Note or Task object based on subtype"""
         name = input('Enter a name: ')
         # self._current will always be the parent, the top level parent will be None
-        note = Note(name, self._current)
+        if subtype == 'Note':
+            note = Note(name, self._current)
+        else:
+            due_date = input("Enter a due date: ")
+            owner = input("Enter an owner: ")
+            note = Task(name, self._current, due_date, owner)
         if self._current:
             self._current.add_child(name, note)
             self._current = note
         else:
             self._notes[name] = note
             self._current = note
+
+    def new_task(self):
+        self.new_note('Task')
 
     def delete(self):
         """In progress function to delete a note, considerations: delete children recursively?"""
@@ -211,28 +222,16 @@ class Note:
         """Prints all notes and references if applicable"""
         print(self)
 
-    def prep_export(self):
-        """ exports this current note to a dictionary to be nested in more notes
-            Thinking about it you'll need to create all these objects from scratch each time
-            so the children objects don't matter
-        """
-        return {self._name: (self._contents, self._references, self._parent, self._children)}
+class Task(Note):
 
-
-class Task:
-    """Tasks will eventually be a feature and can be attached to one or many notes"""
-
-    def __init__(self):
-        self._user = None
-        pass
-
-    pass
-
+    def __init__(self, name, parent, due_date, owner):
+        super().__init__(name, parent)
+        self._due_date = due_date
+        self._owner = owner
 
 def main():
     t1 = Interact()
     t1.menu()
-
 
 if __name__ == '__main__':
     main()
